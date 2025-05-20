@@ -32,8 +32,21 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+// create a collection
+const groupDB = client.db('groupDB').collection('groups');
+
+
+app.get('/groups', async(req, res) => {
+    const result = await groupDB.find().toArray();
+    res.send(result)
+})
+
+
+app.post('/groups', async (req, res) => {
+    const groups  = req.body;
+    console.log(groups);
+    const result = groupDB.insertOne(groups);
+    res.send(result);
 })
 
 app.listen(port, () => {
