@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = 4000;
+const { ObjectId } = require('mongodb');
 
 app.use(cors());
 app.use(express.json());
@@ -41,12 +42,33 @@ app.get('/groups', async(req, res) => {
     res.send(result)
 })
 
+app.get('/groups/:id', async(req, res) => {
+    const id = req.params.id;
+    const query = {_id : new ObjectId(id)};
+    const result = await groupDB.findOne(query);
+    res.send(result)
+})
+
+// my group api
+app.get('/myGroups', async(req, res) => {
+  const email = req.query.email ;
+  const query = {userEmail : email}
+  const result = await groupDB.find(query).toArray()
+  res.send(result)
+})
 
 app.post('/groups', async (req, res) => {
     const groups  = req.body;
     console.log(groups);
     const result = groupDB.insertOne(groups);
     res.send(result);
+})
+
+app.delete('/groups/:id', async(req, res) => {
+  const id = req.params.id;
+  const query = {_id : new ObjectId(id)} ;
+  const result = await groupDB.deleteOne(query)
+  res.send(result)
 })
 
 app.listen(port, () => {
