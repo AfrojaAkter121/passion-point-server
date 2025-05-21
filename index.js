@@ -42,13 +42,6 @@ app.get('/groups', async(req, res) => {
     res.send(result)
 })
 
-app.get('/groups/:id', async(req, res) => {
-    const id = req.params.id;
-    const query = {_id : new ObjectId(id)};
-    const result = await groupDB.findOne(query);
-    res.send(result)
-})
-
 // my group api
 app.get('/myGroups', async(req, res) => {
   const email = req.query.email ;
@@ -62,6 +55,35 @@ app.post('/groups', async (req, res) => {
     console.log(groups);
     const result = groupDB.insertOne(groups);
     res.send(result);
+})
+
+// update 
+app.get('/updateGroup/:id', async(req, res) => {
+  const id = req.params.id ;
+  const query = {_id: new ObjectId(id)};
+  const result = await groupDB.findOne(query);
+    res.send(result)
+})
+
+app.put('/updateGroup/:id', async(req, res) => {
+  const id = req.params.id ;
+  const body = req.body
+  const query = {_id : new ObjectId(id)};
+  const options = { upsert: true };
+  const updateDoc = {
+    $set:  body,
+  };
+  const result = await groupDB.updateOne(query, updateDoc, options);
+  res.send(result)
+})
+
+// deleted
+
+app.get('/groups/:id', async(req, res) => {
+  const id = req.params.id;
+  const query = {_id : new ObjectId(id)};
+  const result = await groupDB.findOne(query);
+  res.send(result)
 })
 
 app.delete('/groups/:id', async(req, res) => {
