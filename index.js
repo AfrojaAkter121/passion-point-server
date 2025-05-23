@@ -32,7 +32,6 @@ async function run() {
 }
 run().catch(console.dir);
 
-
 // create a collection
 const groupDB = client.db('groupDB').collection('groups');
 
