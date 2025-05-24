@@ -26,7 +26,6 @@ async function run() {
   try {
     await client.connect();
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
   }
 }
@@ -34,10 +33,17 @@ run().catch(console.dir);
 
 // create a collection
 const groupDB = client.db('groupDB').collection('groups');
+const userDB = client.db('groupDB').collection('users');
+
 
 
 app.get('/groups', async(req, res) => {
-    const result = await groupDB.find().toArray();
+    const { searchParams } = req.query
+    let query = {};
+    if(searchParams){
+      query = {category : {$regex: searchParams, $options: 'i'}}
+    }
+    const result = await groupDB.find(query).toArray();
     res.send(result)
 })
 
@@ -47,11 +53,10 @@ app.get('/myGroups', async(req, res) => {
   const query = {userEmail : email}
   const result = await groupDB.find(query).toArray()
   res.send(result)
-})
+})                          
 
 app.post('/groups', async (req, res) => {
     const groups  = req.body;
-    console.log(groups);
     const result = groupDB.insertOne(groups);
     res.send(result);
 })
@@ -76,14 +81,15 @@ app.put('/updateGroup/:id', async(req, res) => {
   res.send(result)
 })
 
-// deleted
 
+// deleted
 app.get('/groups/:id', async(req, res) => {
   const id = req.params.id;
   const query = {_id : new ObjectId(id)};
   const result = await groupDB.findOne(query);
   res.send(result)
 })
+
 
 app.delete('/groups/:id', async(req, res) => {
   const id = req.params.id;
@@ -92,6 +98,13 @@ app.delete('/groups/:id', async(req, res) => {
   res.send(result)
 })
 
+// users related api
+app.post('/users', async(req, res) => {
+  const userProfile = req.body
+  const result = await userDB.insertOne(userProfile)
+  res.send(result)
+})
+
 app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+
 })
