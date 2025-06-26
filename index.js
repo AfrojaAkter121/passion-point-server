@@ -96,6 +96,7 @@ app.delete('/groups/:id', async(req, res) => {
   const query = {_id : new ObjectId(id)} ;
   const result = await groupDB.deleteOne(query)
   res.send(result)
+  console.log(result)
 })
 
 // users related api
