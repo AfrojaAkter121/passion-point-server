@@ -37,15 +37,37 @@ const userDB = client.db('groupDB').collection('users');
 
 
 
-app.get('/groups', async(req, res) => {
-    const { searchParams } = req.query
-    let query = {};
-    if(searchParams){
-      query = {category : {$regex: searchParams, $options: 'i'}}
-    }
-    const result = await groupDB.find(query).toArray();
-    res.send(result)
-})
+// ✅ /groups API route
+app.get('/groups', async (req, res) => {
+  const { search = "", category = "", sort = "" } = req.query;
+
+  let query = {};
+
+  // 🔍 Title Search
+  if (search) {
+    query.groupName = { $regex: search, $options: "i" };
+  }
+
+  if (category) {
+    query.category = { $regex: category, $options: "i" };
+  }
+
+  let cursor = groupDB.find(query);
+
+  // ⬆️⬇️ Sorting
+  if (sort === "asc") {
+    cursor = cursor.sort({ name: 1 });
+  } else if (sort === "desc") {
+    cursor = cursor.sort({ name: -1 });
+  } else if (sort === "startDate") {
+    cursor = cursor.sort({ startDate: -1 });
+  } else if (sort === "memberCount") {
+    cursor = cursor.sort({ memberCount: -1 });
+  }
+
+  const result = await cursor.toArray();
+  res.send(result);
+});
 
 // my group api
 app.get('/myGroups', async(req, res) => {
@@ -96,15 +118,31 @@ app.delete('/groups/:id', async(req, res) => {
   const query = {_id : new ObjectId(id)} ;
   const result = await groupDB.deleteOne(query)
   res.send(result)
-  console.log(result)
+
 })
 
-// users related api
-app.post('/users', async(req, res) => {
-  const userProfile = req.body
-  const result = await userDB.insertOne(userProfile)
-  res.send(result)
-})
+app.post('/users', async (req, res) => {
+  try {
+    const result = await userDB.insertOne(req.body);
+    res.status(201).send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Failed to create user', error });
+  }
+});
+
+
+// সব ইউজার দেখানোর জন্য GET /users
+app.get('/users', async (req, res) => {
+  try {
+    const users = await userDB.find({}).toArray();  // সব ইউজার নিয়ে আসবে
+    res.send(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Failed to fetch users', error });
+  }
+});
+
 
 app.listen(port, () => {
 
